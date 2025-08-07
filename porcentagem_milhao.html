@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Porcentagem do Milhão/title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        :root {
+            --primary-bg: #0c194e;
+            --secondary-bg: #1a2a6c;
+            --accent-gold: #ffd700;
+            --text-light: #f0f0f0;
+            --correct-green: #28a745;
+            --incorrect-red: #dc3545;
+            --disabled-grey: #5a5a5a;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg), var(--secondary-bg));
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        #game-area {
+            display: none; /* Começa escondido */
+        }
+
+        #question-container {
+            margin: 20px 0;
+        }
+
+        #question {
+            font-size: 1.5em;
+            margin-bottom: 25px;
+            min-height: 50px;
+        }
+
+        #options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option {
+            background-color: var(--primary-bg);
+            border: 2px solid var(--accent-gold);
+            color: var(--text-light);
+            padding: 15px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 1;
+        }
+
+        .option:hover:not(:disabled) {
+            background-color: var(--accent-gold);
+            color: var(--primary-bg);
+        }
+
+        .option.correct {
+            background-color: var(--correct-green) !important;
+            color: white !important;
+            border-color: #208338 !important;
+        }
+
+        .option.incorrect {
+            background-color: var(--incorrect-red) !important;
+            color: white !important;
+            border-color: #b02a37 !important;
+        }
+
+        .option.eliminated {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #status-container {
+            margin-top: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        #score-display {
+            color: var(--accent-gold);
+        }
+
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--accent-gold);
+            color: var(--primary-bg);
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            background-color: var(--disabled-grey);
+            color: #9e9e9e;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #stop-button {
+            background-color: #f0ad4e;
+        }
+
+        #play-again-button {
+            display: none;
+        }
+
+        #help-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--accent-gold);
+        }
+
+        #help-container h3 {
+            margin-bottom: 10px;
+            color: var(--accent-gold);
+        }
+
+        #scoreboard {
+            margin-top: 30px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #scoreboard h3 {
+            color: var(--accent-gold);
+            margin-top: 0;
+        }
+
+        #high-scores-list {
+            list-style-type: none;
+            padding: 0;
+            font-size: 1.1em;
+        }
+
+        #high-scores-list li {
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--accent-gold);
+        }
+
+        #high-scores-list li:last-child {
+            border-bottom: none;
+        }
+
+        #welcome-screen #difficulty-selection {
+            margin: 20px 0;
+        }
+
+        #welcome-screen #difficulty-selection h3 {
+             color: var(--accent-gold);
+        }
+
+        #welcome-screen button {
+            margin-top: 20px;
+        }
+
+        #final-message {
+            font-size: 1.8em;
+            color: var(--accent-gold);
+            display: none;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Porcentagem do Milhão</h1>
+        <h2>Matemática: Análise Combinatória e Porcentagem</h2>
+
+        <div id="welcome-screen">
+            <p>Teste seus conhecimentos e veja se você consegue chegar a 1 Milhão de Pontos!</p>
+            <div id="difficulty-selection">
+                <h3>Escolha a dificuldade:</h3>
+                <button class="btn difficulty-btn" data-difficulty="easy">Fácil</button>
+                <button class="btn difficulty-btn" data-difficulty="medium">Médio</button>
+                <button class="btn difficulty-btn" data-difficulty="hard">Difícil</button>
+            </div>
+        </div>
+
+        <div id="game-area">
+            <div id="question-container">
+                <p id="question"></p>
+                <div id="options-container"></div>
+            </div>
+
+            <div id="help-container">
+                <h3>Ajudas Disponíveis:</h3>
+                <button class="btn help-btn" id="cards-button">Cartas</button>
+                <button class="btn help-btn" id="skip-button">Pular</button>
+            </div>
+
+            <div id="status-container">
+                <p>Pontuação Atual: <span id="score-display">R$ 0</span></p>
+                <p>Pergunta valendo: <span id="question-value-display" style="color: #4dff4d;">R$ 0</span></p>
+            </div>
+
+            <div id="controls">
+                <button class="btn" id="stop-button">Parar</button>
+                <button class="btn" id="play-again-button">Jogar Novamente</button>
+            </div>
+
+            <h2 id="final-message"></h2>
+        </div>
+
+        <div id="scoreboard">
+            <h3>🏆 Placar de Recordes 🏆</h3>
+            <ol id="high-scores-list"></ol>
+        </div>
+    </div>
+
+    <script>
+        // --- ELEMENTOS DA INTERFACE ---
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        const gameArea = document.getElementById('game-area');
+        const questionEl = document.getElementById('question');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const questionValueDisplay = document.getElementById('question-value-display');
+        const stopButton = document.getElementById('stop-button');
+        const playAgainButton = document.getElementById('play-again-button');
+        const highScoresList = document.getElementById('high-scores-list');
+        const finalMessageEl = document.getElementById('final-message');
+        const cardsButton = document.getElementById('cards-button');
+        const skipButton = document.getElementById('skip-button');
+
+        // --- BANCO DE PERGUNTAS POR DIFICULDADE ---
+        const questionsDB = {
+            easy: [
+                { question: "Quanto é 50% de 100?", options: ["25", "50", "75", "100"], answer: 1, value: 1000 },
+                { question: "De quantas maneiras 2 livros podem ser organizados em uma prateleira?", options: ["1", "2", "3", "4"], answer: 1, value: 5000 },
+                { question: "Um produto de R$ 20 teve 10% de desconto. Qual o novo preço?", options: ["R$ 18", "R$ 22", "R$ 10", "R$ 2"], answer: 0, value: 10000 },
+                { question: "Se você tem 3 camisas e 2 calças, quantos looks diferentes pode montar?", options: ["5", "6", "3", "2"], answer: 1, value: 25000 },
+                { question: "20 representa qual porcentagem de 200?", options: ["1%", "5%", "10%", "20%"], answer: 2, value: 50000 },
+                { question: "Quantos são os anagramas da palavra 'PAI'?", options: ["3", "4", "5", "6"], answer: 3, value: 100000 },
+                { question: "Aumentando um número em 25%, ele vai para 125. Que número é esse?", options: ["25", "50", "75", "100"], answer: 3, value: 250000 },
+                { question: "Um dado de 6 faces é lançado. Qual a probabilidade de sair um número par?", options: ["1/6", "1/3", "1/2", "2/3"], answer: 2, value: 500000 },
+                { question: "De um grupo de 4 amigos, quantos pares diferentes podemos formar?", options: ["4", "6", "8", "12"], answer: 1, value: 1000000 }
+            ],
+            medium: [
+                { question: "Quanto é 25% de 200?", options: ["25", "50", "75", "100"], answer: 1, value: 1000 },
+                { question: "De quantas maneiras 3 pessoas podem se sentar em 3 cadeiras em fila?", options: ["3", "6", "9", "12"], answer: 1, value: 5000 },
+                { question: "Um produto que custava R$ 80 teve um aumento de 10%. Qual o novo preço?", options: ["R$ 8", "R$ 88", "R$ 90", "R$ 72"], answer: 1, value: 10000 },
+                { question: "Em uma sala com 5 pessoas, de quantas formas podemos formar uma comissão com 2 delas?", options: ["10", "20", "25", "5"], answer: 0, value: 25000 },
+                { question: "Um valor de R$ 500 sofreu um desconto de 20% e, sobre o novo valor, um acréscimo de 20%. Qual o valor final?", options: ["R$ 500", "R$ 480", "R$ 520", "R$ 460"], answer: 1, value: 50000 },
+                { question: "Quantos anagramas a palavra 'BOLO' possui?", options: ["24", "12", "6", "4"], answer: 1, value: 100000 },
+                { question: "Uma loja vendeu 30% de seu estoque. Se ainda restam 140 camisetas, qual era o estoque inicial?", options: ["170", "200", "250", "467"], answer: 1, value: 250000 },
+                { question: "Numa corrida com 10 atletas, de quantas maneiras o pódio (1º, 2º e 3º) pode ser formado?", options: ["120", "30", "720", "1000"], answer: 2, value: 500000 },
+                { question: "Em um grupo de 6 homens e 4 mulheres, quantas comissões de 3 pessoas podem ser formadas com 2 homens e 1 mulher?", options: ["60", "72", "120", "24"], answer: 0, value: 1000000 }
+            ],
+            hard: [
+                { question: "Um capital de R$1.200 é aplicado a juros compostos de 5% ao mês. Qual será o montante após 2 meses?", options: ["R$ 1.320,00", "R$ 1.323,00", "R$ 1.300,00", "R$ 1.260,00"], answer: 1, value: 1000 },
+                { question: "Quantos anagramas da palavra 'ARARA' existem?", options: ["120", "60", "30", "10"], answer: 3, value: 5000 },
+                { question: "O preço de um item foi reduzido em 20%. Para voltar ao preço original, o novo preço deve ser aumentado em:", options: ["20%", "22.5%", "25%", "30%"], answer: 2, value: 10000 },
+                { question: "De quantas maneiras 5 crianças podem formar uma roda de ciranda?", options: ["120", "60", "24", "25"], answer: 2, value: 25000 },
+                { question: "Em uma urna há 5 bolas vermelhas e 3 brancas. Retirando-se duas bolas sem reposição, qual a probabilidade de ambas serem vermelhas?", options: ["5/14", "25/64", "5/8", "20/56"], answer: 0, value: 50000 },
+                { question: "Quantos números de 4 algarismos distintos podem ser formados com os dígitos 1, 2, 3, 4, 5 e 6?", options: ["1296", "720", "360", "120"], answer: 2, value: 100000 },
+                { question: "Se 15% de um número é 45, quanto é 20% desse número?", options: ["50", "60", "75", "300"], answer: 1, value: 250000 },
+                { question: "Uma comissão de 4 pessoas será escolhida de um grupo de 5 homens e 5 mulheres. Qual a probabilidade de a comissão ter exatamente 2 homens e 2 mulheres?", options: ["10/21", "1/2", "100/210", "50/105"], answer: 0, value: 500000 },
+                { question: "Quantos são os anagramas da palavra 'PROVA' em que as vogais não estão juntas?", options: ["120", "48", "72", "24"], answer: 2, value: 1000000 }
+            ]
+        };
+
+        // --- ESTADO DO JOGO ---
+        let currentQuestionIndex;
+        let score;
+        let highScores;
+        let questions;
+        let canUseCards;
+        let canSkip;
+
+        // --- FUNÇÕES DO JOGO ---
+
+        function startGame(difficulty) {
+            questions = questionsDB[difficulty];
+            currentQuestionIndex = 0;
+            score = 0;
+            canUseCards = true;
+            canSkip = true;
+
+            welcomeScreen.style.display = 'none';
+            gameArea.style.display = 'block';
+            playAgainButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+            finalMessageEl.style.display = 'none';
+
+            // Habilita botões de ajuda
+            cardsButton.disabled = false;
+            skipButton.disabled = false;
+
+            updateScoreDisplay();
+            loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                endGame(true, `PARABÉNS! Você ganhou ${formatCurrency(score)}!`);
+                return;
+            }
+
+            const currentQuestion = questions[currentQuestionIndex];
+            questionEl.innerText = currentQuestion.question;
+            questionValueDisplay.innerText = formatCurrency(currentQuestion.value);
+            optionsContainer.innerHTML = '';
+
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.innerText = option;
+                button.classList.add('option');
+                button.dataset.index = index;
+                button.addEventListener('click', selectAnswer);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function selectAnswer(e) {
+            const selectedButton = e.target;
+            const selectedAnswerIndex = parseInt(selectedButton.dataset.index);
+            const currentQuestion = questions[currentQuestionIndex];
+
+            document.querySelectorAll('.option').forEach(btn => btn.disabled = true);
+
+            if (selectedAnswerIndex === currentQuestion.answer) {
+                score = currentQuestion.value;
+                selectedButton.classList.add('correct');
+
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    updateScoreDisplay();
+                    loadNextQuestion();
+                }, 1500);
+
+            } else {
+                selectedButton.classList.add('incorrect');
+                const correctButton = optionsContainer.querySelector(`[data-index='${currentQuestion.answer}']`);
+                correctButton.classList.add('correct');
+
+                setTimeout(() => {
+                    score = 0;
+                    endGame(false, "Que pena, você errou!");
+                }, 2000);
+            }
+        }
+
+        function stopGame() {
+            const message = score > 0 ? `Você decidiu parar e garantiu ${formatCurrency(score)}!` : "Você parou, mas não acumulou pontos.";
+            endGame(false, message);
+        }
+
+        function endGame(isWinner, message) {
+            updateHighScores(score);
+            document.getElementById('question-container').style.display = 'none';
+            document.getElementById('status-container').style.display = 'none';
+            document.getElementById('help-container').style.display = 'none';
+            stopButton.style.display = 'none';
+
+            finalMessageEl.innerText = message;
+            finalMessageEl.style.display = 'block';
+            playAgainButton.style.display = 'inline-block';
+        }
+
+        function updateScoreDisplay() {
+            scoreDisplay.innerText = formatCurrency(score);
+        }
+
+        function formatCurrency(value) {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 });
+        }
+
+        function resetGame() {
+            welcomeScreen.style.display = 'block';
+            gameArea.style.display = 'none';
+
+            document.getElementById('question-container').style.display = 'block';
+            document.getElementById('status-container').style.display = 'block';
+            document.getElementById('help-container').style.display = 'block';
+        }
+
+        // --- FUNÇÕES DE AJUDA ---
+        function useCards() {
+            if (!canUseCards) return;
+            canUseCards = false;
+            cardsButton.disabled = true;
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const correctIndex = currentQuestion.answer;
+            const options = Array.from(optionsContainer.children);
+
+            const incorrectOptions = options.filter(opt => parseInt(opt.dataset.index) !== correctIndex);
+
+            // Embaralha as opções incorretas e remove 2
+            incorrectOptions.sort(() => Math.random() - 0.5);
+
+            let eliminatedCount = 0;
+            for (let i = 0; i < incorrectOptions.length && eliminatedCount < 2; i++) {
+                incorrectOptions[i].classList.add('eliminated');
+                eliminatedCount++;
+            }
+        }
+
+        function skipQuestion() {
+            if (!canSkip) return;
+            canSkip = false;
+            skipButton.disabled = true;
+
+            currentQuestionIndex++;
+            loadNextQuestion();
+        }
+
+        // --- FUNÇÕES DE PLACAR (HIGH SCORES) ---
+        function loadHighScores() {
+            const scoresFromStorage = localStorage.getItem('mathShowHighScores');
+            highScores = scoresFromStorage ? JSON.parse(scoresFromStorage) : [];
+            displayHighScores();
+        }
+
+        function updateHighScores(finalScore) {
+            if (finalScore > 0) {
+                highScores.push(finalScore);
+                highScores.sort((a, b) => b - a);
+                highScores = highScores.slice(0, 5);
+                localStorage.setItem('mathShowHighScores', JSON.stringify(highScores));
+                displayHighScores();
+            }
+        }
+
+        function displayHighScores() {
+            highScoresList.innerHTML = '';
+            if (highScores.length === 0) {
+                highScoresList.innerHTML = '<li>Nenhum recorde ainda. Seja o primeiro!</li>';
+            } else {
+                highScores.forEach((score, index) => {
+                    const li = document.createElement('li');
+                    li.innerText = `${index + 1}º Lugar - ${formatCurrency(score)}`;
+                    highScoresList.appendChild(li);
+                });
+            }
+        }
+
+        // --- INICIALIZAÇÃO ---
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                startGame(button.dataset.difficulty);
+            });
+        });
+
+        stopButton.addEventListener('click', stopGame);
+        playAgainButton.addEventListener('click', resetGame);
+        cardsButton.addEventListener('click', useCards);
+        skipButton.addEventListener('click', skipQuestion);
+
+        window.onload = loadHighScores;
+    </script>
+
+</body>
+</html>
